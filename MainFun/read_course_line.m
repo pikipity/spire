@@ -16,8 +16,8 @@ function [keywords, contents] = read_course_line(line)
 keywords=cell(1,length(tokens));
 contents=cell(1,length(tokens));
 for i=1:length(tokens)
-    keywords{1}=tokens{i}{1};
-    contents{1}=tokens{i}{2};
+    keywords{i}=tokens{i}{1};
+    contents{i}=tokens{i}{2};
 end
 
 end

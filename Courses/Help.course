@@ -1,0 +1,7 @@
+<disp> Main commands: </disp>
+<disp>    help: show all main commands </disp>
+<disp>    select_course: select a course to begin </disp>
+<disp>    end_course: end current course </disp>
+<disp>    continue_course: continue last course </disp>
+<disp>    quit: quit spire </disp>
+<disp>    play_mode: enter ''play'' mode </disp> 

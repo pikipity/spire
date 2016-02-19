@@ -19,25 +19,87 @@ if ~isempty(varlist)
             uisave(variablenamelist,'workspace.mat');
             clear;clc;
     end
+else
+    clear;clc;
 end
-%% Initial
+%
 global SpireApp;
+% Add path
+SpireApp.filepath=fileparts([mfilename('fullpath') '.m']);
+cd(SpireApp.filepath)
+addpath(genpath('./'))
+%% Initial
 SpireApp.keywords_table=config_keywords_table();
 SpireApp.state_table=config_state_table();
 SpireApp.state=1;
+SpireApp.user='';
+SpireApp.curnum=1;
+SpireApp.course='';
 %% Main
 while 1
     switch SpireApp.state
         case SpireApp.state_table('quit')
+            [SpireApp.linenum,SpireApp.lines,SpireApp.readcourse_error]=read_course('Quit.course');
+            if SpireApp.readcourse_error
+                disp('Error: Help File Wrong')
+            else
+                enter_course(SpireApp.linenum,SpireApp.lines);
+            end
             break;
         case SpireApp.state_table('begin')
             [SpireApp.linenum,SpireApp.lines,SpireApp.readcourse_error]=read_course('Welcome.course');
             if SpireApp.readcourse_error
-                disp('Error: Course File Wrong')
-                SpireApp.state=SpireApp.state_table('quit');
+                disp('Error: Welcome File Wrong')
             else
                 enter_course(SpireApp.linenum,SpireApp.lines);
-                SpireApp.state=SpireApp.state_table('quit');
             end
+            SpireApp.state=SpireApp.state_table('command');
+        case SpireApp.state_table('help')
+            [SpireApp.linenum,SpireApp.lines,SpireApp.readcourse_error]=read_course('Help.course');
+            if SpireApp.readcourse_error
+                disp('Error: Help File Wrong')
+            else
+                enter_course(SpireApp.linenum,SpireApp.lines);
+            end
+            SpireApp.state=SpireApp.state_table('command');
+        case SpireApp.state_table('command')
+            SpireApp.incommand=input('>>','s');
+            switch strtrim(SpireApp.incommand)
+                case 'help'
+                    SpireApp.state=SpireApp.state_table('help');
+                case 'quit'
+                    SpireApp.state=SpireApp.state_table('quit');
+                case SpireApp.state_table('select_course')
+                    if isempty(SpireApp.user)
+                        SpireApp.state=SpireApp.state_table('enter_user');
+                    else
+                        SpireApp.temp='';
+                        while isempty(SpireApp.temp)
+                            SpireApp.temp=questdlg(questions,['Do you want to use ''' SpireApp.user ''' to begin your course?'],...
+                            'Yes','No','No');
+                        end
+                        switch SpireApp.temp
+                            case 'Yes'
+                                SpireApp.state=SpireApp.state_table('select_course');
+                            case 'No'
+                                SpireApp.state=SpireApp.state_table('enter_user');
+                        end
+                    end
+                otherwise
+                    disp('Unknown command')
+                    SpireApp.state=SpireApp.state_table('help');
+            end
+        case SpireApp.state_table('enter_user')
+            SpireApp.user=input('Please enter your user name: ','s');
+            SpireApp.state=SpireApp.state_table('select_course');
+        case SpireApp.state_table('select_course')
+            SpireApp.courselist=get_course_list();
+            [s,v] = listdlg('PromptString','Select a file:',...
+                    'SelectionMode','single',...
+                    'ListString',str);
     end
 end
+% Remove App Data
+clear SpireApp
+% Remove path
+rmpath(genpath('./'))

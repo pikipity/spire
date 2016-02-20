@@ -35,6 +35,7 @@ SpireApp.state=1;
 SpireApp.user='';
 SpireApp.curnum=1;
 SpireApp.course='';
+SpireApp.play_mode=0;
 %% Main
 while 1
     switch SpireApp.state
@@ -90,16 +91,58 @@ while 1
                     SpireApp.state=SpireApp.state_table('help');
             end
         case SpireApp.state_table('enter_user')
-            SpireApp.user=input('Please enter your user name: ','s');
+            SpireApp.user='';
+            while isempty(SpireApp.user)
+                SpireApp.user=input('Please enter your user name: ','s');
+            end
             SpireApp.state=SpireApp.state_table('select_course');
         case SpireApp.state_table('select_course')
-            SpireApp.courselist=get_course_list();
-            [s,v] = listdlg('PromptString','Select a file:',...
-                    'SelectionMode','single',...
-                    'ListString',str);
+            SpireApp.temp='';
+            if exist(['UserData/' SpireApp.user '.mat'])
+                while isempty(SpireApp.temp)
+                    SpireApp.temp=questdlg(questions,[SpireApp.user 'already registed. Do you want to continue previous progress?'],...
+                    'Yes','No','No');
+                end
+            else
+                SpireApp.temp='No';
+            end
+            switch SpireApp.temp
+                case 'Yes'
+                    load(['UserData/' SpireApp.user '.mat']);
+%                     SpireApp.state=SpireApp.state_table('command');
+                case 'No'
+                   SpireApp.courselist=get_course_list();
+                    if isempty(SpireApp.courselist)
+                        disp('There is not any course.')
+%                         SpireApp.state=SpireApp.state_table('command');
+                    else
+                        [SpireApp.course,~] = listdlg('PromptString','Select a course:',...
+                                'SelectionMode','single',...
+                                'ListString',SpireApp.courselist);
+                         if isempty(SpireApp.course)
+                             disp('You didn''t select any course.')
+%                              SpireApp.state=SpireApp.state_table('command');
+                         else
+                             disp(['You select ''' SpireApp.course ''' course.'])
+%                              SpireApp.state=SpireApp.state_table('command');
+                         end
+                    end 
+            end
+            SpireApp.state=SpireApp.state_table('begin_course');
+        case SpireApp.state_table('begin_course');
+            if ~exist(['courses/' SpireApp.course '/' SpireApp.course '.course'])
+                disp(['There is not ''' 'courses/' SpireApp.course '/' SpireApp.course '.course' ''' file. Please check this course.'])
+                SpireApp.state=SpireApp.state_table('command');
+            else
+                [SpireApp.linenum,SpireApp.lines,SpireApp.readcourse_error]=read_course(['courses/' SpireApp.course '/' SpireApp.course '.course']);
+                if SpireApp.readcourse_error
+                    disp(['''' 'courses/' SpireApp.course '/' SpireApp.course '.course' ''' file Wrong. Please check this course.'])
+                else
+                    enter_course(SpireApp.linenum,SpireApp.lines);
+                end
+                SpireApp.state=SpireApp.state_table('command');
+            end
     end
 end
 % Remove App Data
 clear SpireApp
-% Remove path
-rmpath(genpath('./'))

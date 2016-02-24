@@ -1,6 +1,6 @@
-function output=course_blank_line(nothing)
+function output=evaluate_commands(commands)
     try
-        disp(' ')
+        eval(commands);
         output.error=0;
     catch err
         output.error=1;

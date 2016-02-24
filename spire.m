@@ -64,13 +64,14 @@ while 1
             end
             SpireApp.state=SpireApp.state_table('command');
         case SpireApp.state_table('command')
-            SpireApp.incommand=input('>>','s');
+            SpireApp.incommand=input('>> ','s');
             switch strtrim(SpireApp.incommand)
+                case ''
                 case 'help'
                     SpireApp.state=SpireApp.state_table('help');
                 case 'quit'
                     SpireApp.state=SpireApp.state_table('quit');
-                case SpireApp.state_table('select_course')
+                case 'select_course'
                     if isempty(SpireApp.user)
                         SpireApp.state=SpireApp.state_table('enter_user');
                     else
@@ -114,7 +115,7 @@ while 1
                    SpireApp.courselist=get_course_list();
                     if isempty(SpireApp.courselist)
                         disp('There is not any course.')
-%                         SpireApp.state=SpireApp.state_table('command');
+                        SpireApp.state=SpireApp.state_table('command');
                     else
                         [SpireApp.course,~] = listdlg('PromptString','Select a course:',...
                                 'SelectionMode','single',...
@@ -126,9 +127,9 @@ while 1
                              disp(['You select ''' SpireApp.course ''' course.'])
 %                              SpireApp.state=SpireApp.state_table('command');
                          end
+                         SpireApp.state=SpireApp.state_table('begin_course');
                     end 
             end
-            SpireApp.state=SpireApp.state_table('begin_course');
         case SpireApp.state_table('begin_course');
             if ~exist(['courses/' SpireApp.course '/' SpireApp.course '.course'])
                 disp(['There is not ''' 'courses/' SpireApp.course '/' SpireApp.course '.course' ''' file. Please check this course.'])
@@ -144,5 +145,8 @@ while 1
             end
     end
 end
+% Remove path
+cd(SpireApp.filepath)
+rmpath(genpath('./'))
 % Remove App Data
 clear SpireApp
